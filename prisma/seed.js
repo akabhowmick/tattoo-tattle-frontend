@@ -13,42 +13,7 @@ async function main() {
       data: client,
     });
   }
-  // for (let tattoo of db_reseed.tattoos){
-  //   await prisma.tattoo.create({
-  //     data: tattoo,
-  //   });
-  // }
-  // for (let request of db_reseed.requests){
-  //   await prisma.request.create({
-  //     data: request,
-  //   });
-  // }
-  // for (let favorite of db_reseed.favorites){
-  //   await prisma.favorite.create({
-  //     data: favorite,
-  //   });
-  // }
-  // const db_tattoos = db_reseed.tattoos;
-  // db_tattoos.forEach(async (tattoo) => {
-  //   console.log("making the following: tattoo")
-  //   await prisma.tattoo.create({
-  //     data: tattoo,
-  //   });
-  // });
-  // const db_favorites = db_reseed.favorites;
-  // db_favorites.forEach(async (favorite) => {
-  //   console.log("making the following: favori")
-  //   await prisma.favorite.create({
-  //     data: favorite,
-  //   });
-  // });
-  // const db_requests = db_reseed.requests;
-  // db_requests.forEach(async (request) => {
-  //   console.log("making the following: requst")
-  //   await prisma.request.create({
-  //     data: request,
-  //   });
-  // });
+  console.log("Done with creating client and artist");
 }
 
 async function main2() {
@@ -67,6 +32,7 @@ async function main2() {
       data: favorite,
     });
   }
+  console.log("Done with creating the rest");
 }
 
 main().then(

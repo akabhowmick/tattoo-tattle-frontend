@@ -25,12 +25,6 @@
 3. Run "npm run dev" to run the app 
 6. Create an account/log in and explore the tattoo tattle site!
 
-
-3. Run "npx prisma migrate reset" to seed the database for the first viewing 
-4. On a terminal session run the command "npx nodemon" to start up the prisma servers
-5. On a separate terminal run "npm run dev" to start up the app
-6. Create an account/log in and explore the tattoo tattle site!
-
 ### Technologies used:
 1. React
 2. React Router

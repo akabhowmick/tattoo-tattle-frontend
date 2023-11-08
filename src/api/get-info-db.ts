@@ -18,8 +18,8 @@ export const getTattoosFromDB = () => {
   });
 };
 
-export const getRequestsFromDB = () => {
-  return fetch(API_CONFIG.baseURL + "/requests").then((response) => {
+export const getTattooRequestsFromDB = () => {
+  return fetch(API_CONFIG.baseURL + "/tattooRequests").then((response) => {
     return response.json();
   });
 };

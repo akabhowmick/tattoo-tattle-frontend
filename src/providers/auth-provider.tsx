@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/react-in-jsx-scope */
 import { useState, createContext, useContext, ReactNode } from "react";
 import { getArtistsFromDB, getClientsFromDB } from "../api/get-info-db";
@@ -10,11 +11,6 @@ import {
 import { useEffect } from "react";
 import { Artist, Client, UserSignIn } from "../types/interface";
 import swal from "sweetalert";
-import {
-  createTokenForUser,
-  createUnsecuredInfo,
-  encryptPassword,
-} from "../Routers/auth-utils";
 
 interface AuthContextType {
   user: Artist | Client | null;
@@ -57,6 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     if (token) {
       localStorage.setItem("token", JSON.stringify(token));
+      setAuthorizationString(
+        `Bearer ${localStorage.getItem("token")?.slice(1, -1)}`
+      );
     }
   };
 
@@ -64,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setToken("");
     setLoggedIn(false);
-    setAuthorizationString("");
+    setAuthorizationString("Bearer ");
     localStorage.removeItem("user");
     localStorage.removeItem("token");
   };
@@ -78,56 +77,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // register new user
   const addArtist = async (artist: Artist) => {
-    let allArtists = await getArtistsFromDB();
+    const allArtists = await getArtistsFromDB();
     const existingUser = allArtists.find(
       (user: Artist) => user.email === artist.email
     );
     if (existingUser) {
       swal("Sign up error!", "Account with this Email already exists", "error");
     } else {
-      await addArtistToDB({
+      const response: any = await addArtistToDB({
         firstName: artist.firstName,
         lastName: artist.lastName,
         email: artist.email,
-        password: await encryptPassword(artist.password),
+        password: artist.password,
         phoneNumber: artist.phoneNumber,
         tattooStyles: artist.tattooStyles,
         statesLocation: artist.statesLocation,
         type: "Artist",
       });
-      allArtists = await getArtistsFromDB();
-      const newAddedArtist = await allArtists.find(
-        (user: Artist) => user.email === artist.email
-      );
-      const localInfo = createUnsecuredInfo(newAddedArtist);
-      const token = await createTokenForUser(localInfo);
-      signInUser(localInfo as Artist, token);
+      const responseJson = await response.json();
+      if (responseJson.token && responseJson.user) {
+        signInUser(responseJson.user as Artist, responseJson.token);
+      }
     }
   };
 
   const addClient = async (client: Client) => {
-    let allClients = await getClientsFromDB();
+    const allClients = await getClientsFromDB();
     const existingUser = allClients.find(
       (user: Client) => user.email === client.email
     );
     if (existingUser) {
       swal("Sign up error!", "Account with this Email already exists", "error");
     } else {
-      await addClientToDB({
+      const response: any = await addClientToDB({
         firstName: client.firstName,
         lastName: client.lastName,
         email: client.email,
-        password: await encryptPassword(client.password),
+        password: client.password,
         phoneNumber: client.phoneNumber,
         type: "Client",
       });
-      allClients = await getClientsFromDB();
-      const newAddedClient = allClients.find(
-        (user: Client) => user.email === client.email
-      );
-      const localInfo = createUnsecuredInfo(newAddedClient);
-      const token = await createTokenForUser(localInfo);
-      signInUser(localInfo as Client, token);
+      const responseJson = await response.json();
+      if (responseJson.token && responseJson.user) {
+        signInUser(responseJson.user as Client, responseJson.token);
+      }
     }
   };
 
@@ -147,7 +140,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       })
       .catch(() => {
-        swal("Sign in error!", "Invalid credentials", "error");
+        swal("Sign in error!", "Invalid credentials: User not found", "error");
       });
     return false;
   };
@@ -166,32 +159,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(body.token);
       })
       .catch(() => {
-        swal("Sign in error!", "Invalid credentials", "error");
+        swal("Sign in error!", "Invalid credentials: User not found", "error");
       });
   };
 
   const editUser = async (email: string, password: string) => {
-    const hashedNewPassword = await encryptPassword(password);
+    let response: Response;
     if (userType === "client") {
-      await updateClientInDB(
+      response = await updateClientInDB(
         user!.id!,
         email,
-        hashedNewPassword,
+        password,
         authorizationString
       );
     } else if (userType === "artist") {
-      await updateArtistInDB(
+      response = await updateArtistInDB(
         user!.id!,
         email,
-        hashedNewPassword,
+        password,
         authorizationString
       );
     }
-    signInUser({
-      ...user!,
-      email: email,
-      password: hashedNewPassword,
-    });
+    response!
+      .json()
+      .then((body: { user: Artist | Client; token: string }) => {
+        if (body.user) {
+          signInUser(body.user, body.token);
+        }
+        setToken(body.token);
+      })
+      .catch(() => {
+        swal("Sign in error!", "Invalid credentials: User not found", "error");
+      });
   };
 
   return (

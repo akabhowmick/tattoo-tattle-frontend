@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { Typography, Box, TextField, Button } from "@mui/material";
-import { useRequestsContext } from "../../providers/requests-provider";
+import { Typography, Box, Button, IconButton } from "@mui/material";
+import { useTattooRequestsContext } from "../../providers/tattoo-requests-provider";
 import { useAuthContext } from "../../providers/auth-provider";
 import { ToastMessage } from "../UserInterface/ToastMessage";
-import { errorStyle, modalStyles } from "../UserInterface/Styles";
-import { Info, Request, Tattoo } from "../../types/interface";
+import { modalStyles } from "../UserInterface/Styles";
+import { Info, TattooRequest, Tattoo } from "../../types/interface";
+import { isValidMessage } from "./utils/validations";
+import { FunctionalTextField } from "./utils/FormTextField";
+import { messageErrorMessage } from "./utils/ErrorMessage";
+import CloseIcon from "@mui/icons-material/Close";
 
 export const CreateRequest = ({
   tattoo,
@@ -16,37 +20,26 @@ export const CreateRequest = ({
   tattooRequestSuccess: (info: Info) => void;
 }) => {
   const { user } = useAuthContext();
-  const { addRequest } = useRequestsContext();
+  const { addTattooRequest } = useTattooRequestsContext();
   const [messageBody, setMessageBody] = useState("");
-  const [validMessage, setValidMessage] = useState("Enter a message");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const isMessageInputValid = isValidMessage(messageBody);
+
   const [toastMessage, setToastMessage] = useState({
     message: "",
     messageType: "",
   });
 
-  const messageBodyValidation = (message: string) => {
-    setMessageBody(message);
-    if (message.length < 20) {
-      setValidMessage("Invalid: enter a description (>20 char)");
-    } else {
-      setValidMessage("true");
-    }
+  const reset = () => {
+    setMessageBody("");
+    setIsSubmitted(false);
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const info =
-      validMessage === "true"
-        ? {
-            message: "Request added",
-            messageType: "success",
-          }
-        : {
-            message: "Request Not Modified",
-            messageType: "error",
-          };
-    if (validMessage === "true") {
-      const newRequest: Request = {
+    setIsSubmitted(true);
+    if (isMessageInputValid) {
+      const newRequest: TattooRequest = {
         clientName: user!.firstName + " " + user!.lastName,
         artistName: tattoo.artistName,
         messageBody: messageBody,
@@ -55,11 +48,18 @@ export const CreateRequest = ({
         clientId: user!.id!,
         artistId: tattoo.artistId,
       };
-      addRequest(newRequest);
-      tattooRequestSuccess(info);
+      addTattooRequest(newRequest);
+      tattooRequestSuccess({
+        message: "Request added",
+        messageType: "success",
+      });
+      setToastMessage({
+        message: "Request added",
+        messageType: "success",
+      });
+      reset();
       handleClose();
     }
-    setToastMessage(info);
   };
 
   return (
@@ -71,29 +71,26 @@ export const CreateRequest = ({
           noValidate
           onSubmit={handleSubmit}
         >
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Inquire Artist about Design
-          </Typography>
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="messageBody"
-            label="Message Body"
-            type="text"
-            id="messageBody"
-            autoComplete="message for artist"
-            autoFocus
-            value={messageBody}
-            onChange={(e) => {
-              messageBodyValidation(e.target.value);
-            }}
-          />
-          {validMessage !== "true" && (
-            <Typography sx={errorStyle} variant="h6" component="h6">
-              {validMessage}
+          <div id="modal-header">
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Inquire Artist about Design
             </Typography>
-          )}
+            <IconButton onClick={handleClose}>
+              <CloseIcon />
+            </IconButton>
+          </div>
+          <FunctionalTextField
+            label="Message"
+            inputProps={{
+              placeholder: "Send a message to the artist",
+              value: messageBody,
+              onChange: (e) => {
+                setMessageBody(e.target.value);
+              },
+            }}
+            errorMessage={messageErrorMessage}
+            shouldDisplayError={!isMessageInputValid && isSubmitted}
+          />
           <Button
             type="submit"
             fullWidth

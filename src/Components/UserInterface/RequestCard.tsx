@@ -11,8 +11,8 @@ import IconButton from "@mui/material/IconButton";
 import PendingIcon from "@mui/icons-material/Pending";
 import { useAuthContext } from "../../providers/auth-provider";
 import { green, grey, red } from "@mui/material/colors";
-import { useRequestsContext } from "../../providers/requests-provider";
-import { Request } from "../../types/interface";
+import { useTattooRequestsContext } from "../../providers/tattoo-requests-provider";
+import { TattooRequest } from "../../types/interface";
 
 const random_bg_color = () => {
   const x = Math.floor(Math.random() * 256);
@@ -27,7 +27,7 @@ const avatarBgColor = random_bg_color();
 export const RequestCard = ({
   request,
 }: {
-  request: Request;
+  request: TattooRequest;
   class: string;
 }) => {
   const {
@@ -39,10 +39,10 @@ export const RequestCard = ({
     id,
   } = request;
   const { userType } = useAuthContext();
-  const { editRequest } = useRequestsContext();
+  const { editTattooRequest } = useTattooRequestsContext();
 
   const handleRequestClick = (approval: string) => {
-    editRequest(id!, approval);
+    editTattooRequest(id!, approval);
   };
 
   const clientApprovalIcon = () => {

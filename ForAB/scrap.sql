@@ -21,23 +21,51 @@ client
 
 artist
 {
-    "email": "fakedata4@gmail.com",
-    "firstName": "Fraco",
-    "lastName": "Sand",
-    "password": "1234asdfQ!",
-    "phoneNumber": "3992788746",
-    "statesLocation": "['NY', 'NJ']",
-    "tattooStyles": "['Watercolor']",
-    "type": "artist"
+  "email": "fakedata4@gmail.com",
+  "firstName": "Fraco",
+  "lastName": "Sand",
+  "password": "1234asdfQ!",
+  "phoneNumber": "3992788746",
+  "statesLocation": "['NY', 'NJ']",
+  "tattooStyles": "['Watercolor']",
+  "type": "artist"
 }
 
+tattoo
+{
+  "artistId": 3,
+  "title": "Mollitia mollitia quaerat cumque",
+  "image":
+        "https://firebasestorage.googleapis.com/v0/b/tattoo-tattle.appspot.com/o/images%2Ftattoo9.png49042174-8764-4223-aebb-12a116e30d58?alt=media&token=1ccd8c4f-abfd-4b7a-a7b1-37f98cc347c9",
+  "dateCreated": "5/4/2023",
+  "artistName": "Peyton O'Conner",
+  "description":
+        "Doloremque sequi nostrum minus omnis illum animi. Voluptatem numquam mollitia quos similique minus. Culpa dignissimos suscipit consectetur cumque cupiditate saepe dolorem debitis.",
+  "price": 1001,
+  "statesInput": "VT,VI",
+  "tattooStyleInput": "Portrait,3D",
+}
+    
 request
 {
-      "clientName": "Amelia Boyer",
-      "artistName": "Vergie Schuster",
-      "messageBody": "This is even really cool!  ",
-      "approvalStatus": "Pending",
-      "tattooOfInterestTitle": "Dynamic Identity Architec",
-      "artistId": 1,
-      "clientId": 1,
-    },
+  "clientName": "Amelia Boyer",
+  "artistName": "Vergie Schuster",
+  "messageBody": "This is even really cool!  ",
+  "approvalStatus": "Pending",
+  "tattooOfInterestTitle": "Dynamic Identity Architec",
+  "artistId": 1,
+  "clientId": 1
+},
+
+
+{
+  "artistId": 1,
+  "title": "Human Web Administrators",
+  "image": "https://firebasestorage.googleapis.com/v0/b/tattoo-tattle.appspot.com/o/images%2Ftattoo2.png685b9bca-aaaa-4344-bf58-b9deb1b4922e?alt=media&token=886e289f-ee71-409a-b5e7-b45c2d7067b4",
+  "dateCreated": "5/3/2023",
+  "artistName": "Vergie Schuster",
+  "description": "Et nihil laboriosam et et enim consectetur ut sed quidem",
+  "price:" 1000,
+  "statesInput": "AS,AL",
+  "tattooStyleInput": "Watercolor,Blackwork"
+}

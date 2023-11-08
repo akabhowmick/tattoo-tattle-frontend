@@ -1,9 +1,15 @@
 import { useState } from "react";
-import { Typography, Box, TextField, Button } from "@mui/material";
+import { Typography, Box, Button, IconButton } from "@mui/material";
 import { useTattooTattleContext } from "../../providers/tattoo-provider";
-import { ToastMessage } from "../UserInterface/ToastMessage";
-import { errorStyle, modalStyles } from "../UserInterface/Styles";
+import { modalStyles } from "../UserInterface/Styles";
 import { Info } from "../../types/interface";
+import { isValidDescription, isValidTitle } from "./utils/validations";
+import { FunctionalTextField } from "./utils/FormTextField";
+import {
+  descriptionErrorMessage,
+  titleErrorMessage,
+} from "./utils/ErrorMessage";
+import CloseIcon from "@mui/icons-material/Close";
 
 export const EditTattoo = ({
   id,
@@ -15,102 +21,76 @@ export const EditTattoo = ({
   tattooEditSuccess: (info: Info) => void;
 }) => {
   const { updateTattoo } = useTattooTattleContext();
-  const [messageBody, setMessageBody] = useState("");
-  const [validMessage, setValidMessage] = useState("Enter a description");
-  const [tattooTitle, setTattooTitle] = useState("");
-  const [validTitle, setValidTitle] = useState("Enter a title");
-  const [toastMessage, setToastMessage] = useState({
-    message: "",
-    messageType: "",
-  });
+  const [descriptionInput, setDescriptionInput] = useState("");
+  const [tattooTitleInput, setTattooTitleInput] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const messageBodyValidation = (message: string) => {
-    if (message.length < 20) {
-      setValidMessage("Invalid: enter a description (>20 char)");
-    } else {
-      setValidMessage("true");
-    }
-    setMessageBody(message);
-  };
+  const isDescriptionInputValid = isValidDescription(descriptionInput);
+  const isTitleInputValid = isValidTitle(tattooTitleInput);
 
-  const titleValidation = (title: string) => {
-    if (title.length < 5) {
-      setValidTitle("Invalid: enter a title");
-    } else {
-      setValidTitle("true");
-    }
-    setTattooTitle(title);
+  const reset = () => {
+    setDescriptionInput("");
+    setTattooTitleInput("");
+    setIsSubmitted(false);
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const info =
-      validTitle === "true" && validMessage === "true"
-        ? {
-            message: "Tattoo details modified",
-            messageType: "success",
-          }
-        : {
-            message: "Tattoo Not Modified",
-            messageType: "error",
-          };
-    if (validTitle === "true" && validMessage === "true") {
-      updateTattoo(id, tattooTitle, messageBody);
+    setIsSubmitted(true);
+    if (isTitleInputValid && isDescriptionInputValid) {
+      updateTattoo(id, tattooTitleInput, descriptionInput);
+      reset();
       handleClose();
-      tattooEditSuccess(info);
+      tattooEditSuccess({
+        message: "Tattoo details modified",
+        messageType: "success",
+      });
     }
-    setToastMessage(info);
   };
 
   return (
     <div>
       <Box sx={modalStyles} component="form" noValidate onSubmit={handleSubmit}>
-        <Typography
-          id="modal-modal-title"
-          style={{ color: "black" }}
-          variant="h6"
-          component="h2"
-        >
-          Update Tattoo Details
-        </Typography>
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          name="tattoo-title"
+        <div id="modal-header">
+          <Typography
+            id="modal-modal-title"
+            style={{ color: "black" }}
+            variant="h6"
+            component="h2"
+          >
+            Update Tattoo Details
+          </Typography>
+          <IconButton onClick={handleClose}>
+            <CloseIcon />
+          </IconButton>
+        </div>
+
+        <FunctionalTextField
           label="Tattoo Title"
-          type="text"
-          id="tattoo-title"
-          autoComplete="Tattoo Title"
-          autoFocus
-          onChange={(e) => {
-            titleValidation(e.target.value);
+          inputProps={{
+            placeholder: "Enter a title here",
+            value: tattooTitleInput,
+            onChange: (e) => {
+              setTattooTitleInput(e.target.value);
+            },
           }}
+          errorMessage={titleErrorMessage}
+          shouldDisplayError={!isTitleInputValid && isSubmitted}
         />
-        {validTitle !== "true" && (
-          <Typography sx={errorStyle} variant="h6" component="h6">
-            {validTitle}
-          </Typography>
-        )}
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          name="tattoo-description"
+
+        <FunctionalTextField
           label="Tattoo Description"
-          type="text"
-          id="tattoo-description"
-          autoComplete="Tattoo Description"
-          autoFocus
-          onChange={(e) => {
-            messageBodyValidation(e.target.value);
+          inputProps={{
+            placeholder: "Enter a description here",
+            value: descriptionInput,
+            onChange: (e) => {
+              setDescriptionInput(e.target.value);
+            },
           }}
+          errorMessage={descriptionErrorMessage}
+          shouldDisplayError={!isDescriptionInputValid && isSubmitted}
         />
-        {validMessage !== "true" && (
-          <Typography sx={errorStyle} variant="h6" component="h6">
-            {validMessage}
-          </Typography>
-        )}
+
         <Button
           type="submit"
           fullWidth
@@ -120,7 +100,6 @@ export const EditTattoo = ({
           Submit Request
         </Button>
       </Box>
-      {toastMessage.message !== "" && <ToastMessage info={toastMessage} />}
     </div>
   );
 };

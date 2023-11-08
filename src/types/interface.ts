@@ -53,7 +53,7 @@ export interface Tattoo {
   id?: number;
 }
 
-export interface Request {
+export interface TattooRequest {
   clientName: string;
   artistName: string;
   messageBody: string;

@@ -2,12 +2,15 @@
 import { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
 import { useAuthContext } from "../../providers/auth-provider";
-import { useRequestsContext } from "../../providers/requests-provider";
+import { useTattooRequestsContext } from "../../providers/tattoo-requests-provider";
 import { useTattooTattleContext } from "../../providers/tattoo-provider";
-import { Tattoo, Request } from "../../types/interface";
+import { Tattoo, TattooRequest } from "../../types/interface";
+import { Instructions } from "./Instructions";
 import { RequestCard } from "./RequestCard";
 import { TattooCard } from "./TattooCard";
 
+const tattooHelperString =
+  "At the moment you have no tattoos to display in this section!";
 function TattooItems({
   currentTattoos,
   userId,
@@ -17,7 +20,7 @@ function TattooItems({
 }) {
   return (
     <>
-      {
+      {currentTattoos.length > 0 ? (
         <div className="tattoo-grid">
           {currentTattoos?.map((tattoo: Tattoo) => {
             if (tattoo) {
@@ -32,16 +35,22 @@ function TattooItems({
             }
           })}
         </div>
-      }
+      ) : (
+        <Instructions
+          helperMessage={tattooHelperString}
+          contentType={"Tattoos"}
+        />
+      )}
     </>
   );
 }
 
-function RequestItems({ currentRequests }: { currentRequests: Request[] }) {
+const requestHelperString = "At the moment you have no requests!";
+function RequestItems({ currentRequests }: { currentRequests: TattooRequest[] }) {
   return (
     <>
-      {
-        <div className="request-grid">
+      {currentRequests.length > 0 ? (
+        <div className="tattooRequest-grid">
           {currentRequests?.map((request) => {
             return (
               <RequestCard
@@ -52,17 +61,22 @@ function RequestItems({ currentRequests }: { currentRequests: Request[] }) {
             );
           })}
         </div>
-      }
+      ) : (
+        <Instructions
+          helperMessage={requestHelperString}
+          contentType={"Requests"}
+        />
+      )}
     </>
   );
 }
 
 export const Pagination = ({ currentDisplay }: { currentDisplay: string }) => {
   const { user } = useAuthContext();
-  const { requests } = useRequestsContext();
+  const { tattooRequests } = useTattooRequestsContext();
   const { tattoos } = useTattooTattleContext();
 
-  const items = currentDisplay === "tats" ? tattoos : requests;
+  const items = currentDisplay === "tats" ? tattoos : tattooRequests;
 
   const itemsPerPage = 8; // can change to any number
   const [itemOffset, setItemOffset] = useState(0);
@@ -90,7 +104,7 @@ export const Pagination = ({ currentDisplay }: { currentDisplay: string }) => {
         />
       )}
       {currentDisplay === "reqs" && (
-        <RequestItems currentRequests={currentItems as Request[]} />
+        <RequestItems currentRequests={currentItems as TattooRequest[]} />
       )}
       <ReactPaginate
         breakLabel="..."

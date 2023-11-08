@@ -18,7 +18,7 @@ import {
 import RootLayout from "./layouts/RootLayout";
 import { useAuthContext } from "./providers/auth-provider";
 import { FavoritesProvider } from "./providers/favorites-provider";
-import { RequestsProvider } from "./providers/requests-provider";
+import { TattooRequestsProvider } from "./providers/tattoo-requests-provider";
 import { TattooProvider } from "./providers/tattoo-provider";
 
 function App() {
@@ -40,12 +40,25 @@ function App() {
   );
   return (
     <>
-      <TattooProvider userType={userType} user={user!} loggedIn={loggedIn} authorizationString={authorizationString}>
-        <RequestsProvider userType={userType} user={user!} loggedIn={loggedIn} authorizationString={authorizationString}>
-          <FavoritesProvider user={user!} authorizationString={authorizationString}>
+      <TattooProvider
+        userType={userType}
+        user={user!}
+        loggedIn={loggedIn}
+        authorizationString={authorizationString}
+      >
+        <TattooRequestsProvider
+          userType={userType}
+          user={user!}
+          loggedIn={loggedIn}
+          authorizationString={authorizationString}
+        >
+          <FavoritesProvider
+            user={user!}
+            authorizationString={authorizationString}
+          >
             <RouterProvider router={router} />
           </FavoritesProvider>
-        </RequestsProvider>
+        </TattooRequestsProvider>
       </TattooProvider>
     </>
   );

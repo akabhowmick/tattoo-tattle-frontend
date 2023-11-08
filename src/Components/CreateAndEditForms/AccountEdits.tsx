@@ -1,109 +1,112 @@
 /* eslint-disable react/react-in-jsx-scope */
 /* eslint-disable no-useless-escape */
 import { useAuthContext } from "../../providers/auth-provider";
-import { Typography, Box, TextField, Button } from "@mui/material";
+import { Typography, Box, Button, IconButton } from "@mui/material";
 import { showToastMessage, ToastMessage } from "../UserInterface/ToastMessage";
-import { errorStyle, modalStyles } from "../UserInterface/Styles";
+import { modalStyles } from "../UserInterface/Styles";
 import { useState } from "react";
 import { Info } from "../../types/interface";
+import { isEmailValid, isValidPassword } from "./utils/validations";
+import { FunctionalTextField } from "./utils/FormTextField";
+import { emailErrorMessage, passwordErrorMessage } from "./utils/ErrorMessage";
+import CloseIcon from "@mui/icons-material/Close";
 
-export const AccountEdits = ({ handleAccountEditClose}: {handleAccountEditClose: (info: Info) => void}) => {
+export const AccountEdits = ({
+  handleAccountEditClose,
+}: {
+  handleAccountEditClose: (info: Info) => void;
+}) => {
   const { editUser } = useAuthContext();
   const [emailInput, setEmailInput] = useState("");
-  const [validEmail, setValidEmail] = useState("Enter a valid email");
   const [passwordInput, setPasswordInput] = useState("");
-  const [validPassword, setValidPassword] = useState(
-    "Enter valid password (8-20 char, 1 lowercase,1 uppercase, 1 number, 1 special char)"
-  );
   const [toastMessage, setToastMessage] = useState({
     message: "",
     messageType: "",
   });
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const emailValidation = (email: string) => {
-    const emailRegex =
-      /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-    emailRegex.test(email)
-      ? setValidEmail("true")
-      : setValidEmail("Invalid email input");
-    setEmailInput(email);
-  };
+  //validate the state inputs as they update
+  const isEmailInputValid = isEmailValid(emailInput);
+  const isPasswordInputValid = isValidPassword(passwordInput);
 
-  const passwordValidation = (password: string) => {
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[-#$^+_!*()@%&]).{8,20}$/gm;
-    passwordRegex.test(password)
-      ? setValidPassword("true")
-      : setValidPassword(
-          "Invalid password input, must have (8-20 char, 1 lowercase,1 uppercase, 1 number, 1 special char)"
-        );
-    setPasswordInput(password);
+  const reset = () => {
+    setEmailInput("");
+    setPasswordInput("");
+    setIsSubmitted(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const info =
-      validPassword === "true" && validEmail === "true"
-        ? {
-            message: "User details modified",
-            messageType: "success",
-          }
-        : {
-            message: "Account Not Modified",
-            messageType: "error",
-          };
-    if (validPassword === "true" && validEmail === "true") {
+    setIsSubmitted(true);
+
+    if (isEmailInputValid && isPasswordInputValid) {
       editUser(emailInput, passwordInput);
-      showToastMessage(info);
-      handleAccountEditClose(info);
+      showToastMessage({
+        message: "User details modified",
+        messageType: "success",
+      });
+      handleAccountEditClose({
+        message: "User details modified",
+        messageType: "success",
+      });
+      reset();
+    } else {
+      setToastMessage({
+        message: "Account Not Modified",
+        messageType: "error",
+      });
     }
-    setToastMessage(info);
   };
 
   return (
     <div>
-      <Box sx={modalStyles} component="form" noValidate onSubmit={(e: React.FormEvent) => handleSubmit(e)}>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          Make changes to profile!
-        </Typography>
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="email"
-          label="Email Address"
-          name="email"
-          autoFocus
-          value={emailInput}
-          onChange={(e) => {
-            emailValidation(e.target.value);
-          }}
-          autoComplete="new-password"
-        />
-        {validEmail !== "true" && (
-          <Typography sx={errorStyle} variant="h6" component="h6">
-            {validEmail}
+      <Box
+        sx={modalStyles}
+        component="form"
+        noValidate
+        onSubmit={(e: React.FormEvent) => handleSubmit(e)}
+      >
+        <div id="modal-header">
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Make changes to profile!
           </Typography>
-        )}
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          name="password"
+          <IconButton
+            onClick={() =>
+              handleAccountEditClose({
+                message: "",
+                messageType: "",
+              })
+            }
+          >
+            <CloseIcon />
+          </IconButton>
+        </div>
+        <FunctionalTextField
+          label="Email"
+          inputProps={{
+            placeholder: "ab@bing.net",
+            value: emailInput,
+            type: "text",
+            onChange: (e) => {
+              setEmailInput(e.target.value);
+            },
+          }}
+          errorMessage={emailErrorMessage}
+          shouldDisplayError={!isEmailInputValid && isSubmitted}
+        />
+        <FunctionalTextField
           label="Password"
-          type="password"
-          id="password"
-          value={passwordInput}
-          onChange={(e) => {
-            passwordValidation(e.target.value);
+          inputProps={{
+            placeholder: "Password1!",
+            value: passwordInput,
+            type: "password",
+            onChange: (e) => {
+              setPasswordInput(e.target.value);
+            },
           }}
-          autoComplete="new-password"
+          errorMessage={passwordErrorMessage}
+          shouldDisplayError={!isPasswordInputValid && isSubmitted}
         />
-        {validPassword !== "true" && (
-          <Typography sx={errorStyle} variant="h6" component="h6">
-            {validPassword}
-          </Typography>
-        )}
         <Button
           type="submit"
           fullWidth

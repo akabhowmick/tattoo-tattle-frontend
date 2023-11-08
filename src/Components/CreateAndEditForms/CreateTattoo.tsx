@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   Typography,
   Box,
-  TextField,
   Button,
   Chip,
   FormControl,
@@ -13,7 +12,7 @@ import {
   OutlinedInput,
   SelectChangeEvent,
 } from "@mui/material";
-import { createTheme, Theme } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 import { useTattooTattleContext } from "../../providers/tattoo-provider";
 import { useAuthContext } from "../../providers/auth-provider";
 import { ToastMessage } from "../UserInterface/ToastMessage";
@@ -21,175 +20,77 @@ import { storage } from "../UserInterface/ImageFirebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
 import { Artist, Tattoo } from "../../types/interface";
+import {
+  isValidDescription,
+  isValidImage,
+  isValidPrice,
+  isValidStatesInput,
+  isValidTattooStyleInput,
+  isValidTitle,
+} from "./utils/validations";
+import { errorStyle } from "../UserInterface/Styles";
+import {
+  descriptionErrorMessage,
+  imageErrorMessage,
+  priceErrorMessage,
+  tattooStatesErrorMessage,
+  tattooStylesErrorMessage,
+  titleErrorMessage,
+} from "./utils/ErrorMessage";
+import { FunctionalTextField } from "./utils/FormTextField";
+import { MenuProps, getStyles } from "../Login/selectStyles";
 
-const errorStyle = {
-  color: "red",
-  fontSize: "12px",
-  marginBottom: "10px",
-  marginTop: "-8px",
-};
-
-const emptyStringarr: string[] = [];
-
-const initial = {
-  image: {
-    data: "",
-    valid: false,
-    errorMessage: "",
-  },
-  tattooTitle: {
-    data: "",
-    valid: false,
-    errorMessage: "",
-  },
-  tattooDescription: {
-    data: "",
-    valid: false,
-    errorMessage: "",
-  },
-  price: {
-    data: "",
-    valid: false,
-    errorMessage: "",
-  },
-  tattooStyleInput: {
-    data: emptyStringarr,
-    valid: false,
-    errorMessage: "",
-  },
-  statesInput: {
-    data: emptyStringarr,
-    valid: false,
-    errorMessage: "",
-  },
-};
+const emptyStringArr: string[] = [];
 
 export const CreateTattoo = () => {
   const { addTattoo } = useTattooTattleContext();
   const authContext = useAuthContext();
   const user = authContext.user as Artist;
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [image, setImage] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [tattooStyleInput, setTattooStyleInput] = useState(emptyStringArr);
+  const [statesInput, setStatesInput] = useState(emptyStringArr);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [toastMessage, setToastMessage] = useState({
     message: "",
     messageType: "",
   });
 
-  const [imageUrl, setImageUrl] = useState("");
-
-  const [formValues, setFormValues] = useState(initial);
-
-  const messageBodyValidation = (desc: string) => {
-    if (desc.length < 20) {
-      setFormValues({
-        ...formValues,
-        tattooDescription: {
-          data: desc,
-          valid: false,
-          errorMessage: "Invalid: enter a description (>20 char)",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        tattooDescription: {
-          data: desc,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    }
+  const reset = () => {
+    setTitle("");
+    setDescription("");
+    setPrice("");
+    setImage("");
+    setTattooStyleInput(emptyStringArr);
+    setStatesInput(emptyStringArr);
+    setIsSubmitted(false);
   };
 
-  const titleValidation = (title: string) => {
-    if (title.length < 5) {
-      setFormValues({
-        ...formValues,
-        tattooTitle: {
-          data: title,
-          valid: false,
-          errorMessage: "Invalid: enter a title",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        tattooTitle: { data: title, valid: true, errorMessage: "" },
-      });
-    }
-  };
-
-  const handlePriceChange = (event: SelectChangeEvent<string>) => {
-    if (event.target.value === "") {
-      setFormValues({
-        ...formValues,
-        price: {
-          data: event.target.value,
-          valid: false,
-          errorMessage: "Please enter a price range",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        price: { data: event.target.value, valid: true, errorMessage: "" },
-      });
-    }
-  };
+  const isDescriptionInputValid = isValidDescription(description);
+  const isTitleInputValid = isValidTitle(title);
+  const isPriceInputValid = isValidPrice(price);
+  const isImageInputValid = isValidImage(image);
+  const isTattooStyleInputValid = isValidTattooStyleInput(tattooStyleInput);
+  const isStatesInputValid = isValidStatesInput(statesInput);
 
   const handleTattooStyleChange = (event: SelectChangeEvent<string>) => {
-    if (event.target.value.length === 0) {
-      setFormValues({
-        ...formValues,
-        tattooStyleInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: false,
-          errorMessage: "Enter a tattoo style",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        tattooStyleInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    }
+    setTattooStyleInput(
+      typeof event.target.value === "string"
+        ? event.target.value.split(",")
+        : event.target.value
+    );
   };
 
   const handleUsStatesChange = (event: SelectChangeEvent<string>) => {
-    if (event.target.value.length === 0) {
-      setFormValues({
-        ...formValues,
-        statesInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: false,
-          errorMessage: "Enter studio locations",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        statesInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    }
+    setStatesInput(
+      typeof event.target.value === "string"
+        ? event.target.value.split(",")
+        : event.target.value
+    );
   };
 
   const imageValidation = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,88 +98,53 @@ export const CreateTattoo = () => {
     const imageURL = URL.createObjectURL(file);
     if (file) {
       uploadImageToFirebase(file);
-      setFormValues({
-        ...formValues,
-        image: {
-          data: imageURL,
-          valid: true,
-          errorMessage: "",
-        },
-      });
+      setImage(imageURL);
     }
   };
 
   const uploadImageToFirebase = (file?: File) => {
-    console.log(file);
     if (file) {
       const imageRef = ref(storage, `images/${file.name + v4()}`);
-      uploadBytes(imageRef, file).then((snapshot) => {
-        getDownloadURL(snapshot.ref).then((url) => {
-          setImageUrl(url);
-        });
-      });
+      uploadBytes(imageRef, file).then((snapshot) =>
+        getDownloadURL(snapshot.ref).then((url) => setImageUrl(url))
+      );
     }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    let info = {
-      message: "Tattoo Not Added",
-      messageType: "error",
-    };
+    setIsSubmitted(true);
     if (
-      formValues.image.valid &&
-      formValues.tattooTitle.valid &&
-      formValues.tattooDescription.valid &&
-      formValues.tattooStyleInput.valid &&
-      formValues.statesInput.valid &&
-      formValues.price.valid
+      isImageInputValid &&
+      isTitleInputValid &&
+      isDescriptionInputValid &&
+      isTattooStyleInputValid &&
+      isStatesInputValid &&
+      isPriceInputValid &&
+      imageUrl
     ) {
       const newTattoo: Tattoo = {
         artistId: user.id!,
-        title: formValues.tattooTitle.data,
+        title: title,
         image: imageUrl,
         dateCreated: new Date().toLocaleDateString(),
         artistName: user.firstName + " " + user.lastName,
-        description: formValues.tattooDescription.data,
-        price: parseInt(formValues.price.data),
-        statesInput: formValues.statesInput.data.toString(),
-        tattooStyleInput: formValues.tattooStyleInput.data.toString(),
+        description: description,
+        price: parseInt(price),
+        statesInput: statesInput.toString(),
+        tattooStyleInput: tattooStyleInput.toString(),
       };
       addTattoo(newTattoo);
-      info = {
-        message: "Tattoo added",
-        messageType: "success",
-      };
-      setFormValues(initial);
+
+      reset();
+      setToastMessage({ message: "Tattoo added", messageType: "success" });
     }
-    setToastMessage(info);
   };
-
-  const ITEM_HEIGHT = 48;
-  const ITEM_PADDING_TOP = 8;
-  const MenuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-        width: 250,
-      },
-    },
-  };
-
-  function getStyles(name: string, selectField: string[], theme: Theme) {
-    return {
-      fontWeight:
-        selectField.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
 
   const theme = createTheme();
 
-  const currentStates = formValues.statesInput.data;
-  const currentTattooStates = formValues.tattooStyleInput.data;
+  const currentStates = statesInput;
+  const currentTattooStates = tattooStyleInput;
 
   return (
     <div>
@@ -291,46 +157,32 @@ export const CreateTattoo = () => {
         >
           Add New Tattoo To Your Collection
         </Typography>
-        <TextField
-          value={formValues.tattooTitle.data}
-          margin="normal"
-          required
-          fullWidth
-          name="tattoo-title"
+        <FunctionalTextField
           label="Tattoo Title"
-          type="text"
-          id="tattoo-title"
-          autoComplete="Tattoo Title"
-          autoFocus
-          onChange={(e) => {
-            titleValidation(e.target.value);
+          inputProps={{
+            placeholder: "Enter a title here",
+            value: title,
+            onChange: (e) => {
+              setTitle(e.target.value);
+            },
           }}
+          errorMessage={titleErrorMessage}
+          shouldDisplayError={!isTitleInputValid && isSubmitted}
         />
-        {!formValues.tattooTitle.valid && (
-          <Typography sx={errorStyle} variant="h6" component="h6">
-            {formValues.tattooTitle.errorMessage}
-          </Typography>
-        )}
-        <TextField
-          value={formValues.tattooDescription.data}
-          margin="normal"
-          required
-          fullWidth
-          name="tattoo-description"
+
+        <FunctionalTextField
           label="Tattoo Description"
-          type="text"
-          id="tattoo-description"
-          autoComplete="Tattoo Description"
-          autoFocus
-          onChange={(e) => {
-            messageBodyValidation(e.target.value);
+          inputProps={{
+            placeholder: "Enter a description here",
+            value: description,
+            onChange: (e) => {
+              setDescription(e.target.value);
+            },
           }}
+          errorMessage={descriptionErrorMessage}
+          shouldDisplayError={!isDescriptionInputValid && isSubmitted}
         />
-        {!formValues.tattooDescription.valid && (
-          <Typography sx={errorStyle} variant="h6" component="h6">
-            {formValues.tattooDescription.errorMessage}
-          </Typography>
-        )}
+
         <div className="form-flex-div">
           <div className="field-error-div">
             <FormControl sx={{ m: 2, minWidth: 120 }}>
@@ -340,9 +192,9 @@ export const CreateTattoo = () => {
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
-                value={formValues.price.data}
+                value={price}
                 label="Price Range"
-                onChange={handlePriceChange}
+                onChange={(e) => setPrice(e.target.value)}
               >
                 <MenuItem value="">
                   <em>None</em>
@@ -353,9 +205,9 @@ export const CreateTattoo = () => {
                 <MenuItem value={1001}>&gt; 1000</MenuItem>
               </Select>
             </FormControl>
-            {!formValues.price.valid && (
+            {!isPriceInputValid && isSubmitted && (
               <Typography sx={errorStyle} variant="h6" component="h6">
-                {formValues.price.errorMessage}
+                {priceErrorMessage}
               </Typography>
             )}
           </div>
@@ -384,7 +236,7 @@ export const CreateTattoo = () => {
                       gap: 0.5,
                     }}
                   >
-                    {formValues.statesInput.data.map((value) => (
+                    {statesInput.map((value) => (
                       <Chip key={value} label={value} />
                     ))}
                   </Box>
@@ -395,16 +247,16 @@ export const CreateTattoo = () => {
                   <MenuItem
                     key={name}
                     value={name}
-                    style={getStyles(name, formValues.statesInput.data, theme)}
+                    style={getStyles(name, statesInput, theme)}
                   >
                     {name}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            {!formValues.statesInput.valid && (
+            {isSubmitted && !isStatesInputValid && (
               <Typography sx={errorStyle} variant="h6" component="h6">
-                {formValues.statesInput.errorMessage}
+                {tattooStatesErrorMessage}
               </Typography>
             )}
           </div>
@@ -427,7 +279,7 @@ export const CreateTattoo = () => {
                       gap: 0.5,
                     }}
                   >
-                    {formValues.tattooStyleInput.data.map((value) => (
+                    {tattooStyleInput.map((value) => (
                       <Chip key={value} label={value} />
                     ))}
                   </Box>
@@ -438,20 +290,16 @@ export const CreateTattoo = () => {
                   <MenuItem
                     key={name}
                     value={name}
-                    style={getStyles(
-                      name,
-                      formValues.tattooStyleInput.data,
-                      theme
-                    )}
+                    style={getStyles(name, tattooStyleInput, theme)}
                   >
                     {name}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            {!formValues.tattooStyleInput.valid && (
+            {isSubmitted && !isTattooStyleInputValid && (
               <Typography sx={errorStyle} variant="h6" component="h6">
-                {formValues.tattooStyleInput.errorMessage}
+                {tattooStylesErrorMessage}
               </Typography>
             )}
           </div>
@@ -461,14 +309,18 @@ export const CreateTattoo = () => {
             Upload File
             <input type="file" hidden onChange={(e) => imageValidation(e)} />
           </Button>
-          <img className="create-tat-img" src={formValues.image.data} />
-          {!formValues.image.valid && (
+          <img className="create-tat-img" src={image} />
+          {isSubmitted && !isImageInputValid && (
             <Typography sx={errorStyle} variant="h6" component="h6">
-              {formValues.image.errorMessage}
+              {imageErrorMessage}
             </Typography>
           )}
+          {isSubmitted && !imageUrl && image &&(
+          <Typography sx={errorStyle} variant="h6" component="h6">
+            Waiting for image to upload to our server...
+          </Typography>
+        )}
         </div>
-
         <Button
           type="submit"
           fullWidth

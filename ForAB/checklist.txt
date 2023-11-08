@@ -2,27 +2,28 @@
 Checklist:
 
 1. Sign up/Log in
-   1a. sign in artist => good 
-   1b. sign in client => good
-   1c. log in artist  => good 
-   1d. log in client => good 
+   1a. sign up artist => good  
+   1b. sign up client => good 
+   1c. log in artist  => good
+   1d. log in client =>  
 2. Client functions:
-   2a. add favorites => good
-   2b. make requests => good 
-   2c. use the filters on the tattoos shown => good 
-   2d. update profile => good
-   2e. logout => good 
-   2f. delete favorites => good 
+   2a. add favorites => good when signed in; check log in
+   2b. make requests =>   good when signed in; check log in
+   2c. use the filters on the tattoos shown => good when signed in; check log in
+   2d. update profile => fix the bug below
+   2e. logout =>  good
+   2f. delete favorites =>  good when signed in; check log in
 3. Artist functions:
-   3a. make tattoos => good 
-   3b. respond to request => good
-   3c. edit a tattoo => good
-   3c. update profile => good 
-   3d. logout => good
-   3f. delete tattoos => good 
+   3a. make tattoos =>  
+   3b. respond to request => 
+   3c. edit a tattoo => 
+   3c. update profile =>  
+   3d. logout => 
+   3f. delete tattoos =>  
 
 npx ts-node --esm ./node-app.ts => run node-app.js
 
 To Do:
-4. env variables
+1. env variables
+2. loading state
 

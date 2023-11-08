@@ -3,7 +3,6 @@ import {
   Avatar,
   Button,
   CssBaseline,
-  TextField,
   Paper,
   Box,
   Grid,
@@ -13,13 +12,24 @@ import {
   RadioGroup,
   FormControl,
   FormLabel,
-  TypographyProps,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import loginImage from "../../assets/login.png";
 import { useAuthContext } from "../../providers/auth-provider";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import {
+  isEmailValid,
+  isValidPassword,
+} from "../CreateAndEditForms/utils/validations";
+import { FunctionalTextField } from "../CreateAndEditForms/utils/FormTextField";
+import {
+  emailErrorMessage,
+  passwordErrorMessage,
+  userTypeErrorMessage,
+} from "../CreateAndEditForms/utils/ErrorMessage";
+import { errorStyle } from "../UserInterface/Styles";
+import { Copyright } from "./Copyrights";
 
 const theme = createTheme();
 
@@ -30,33 +40,35 @@ export const Login = () => {
 
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
-
-  const Copyright = (props: TypographyProps) => {
-    return (
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        align="center"
-        {...props}
-      >
-        {"Copyright © "}
-        <Link to="/" replace={true}>
-          Tattoo Tattle
-        </Link>{" "}
-        {new Date().getFullYear()}
-        {"."}
-      </Typography>
-    );
+  const [userTypeInput, setUserTypeInput] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const isEmailInputValid = isEmailValid(emailInput);
+  const isPasswordInputValid = isValidPassword(passwordInput);
+  const reset = () => {
+    setEmailInput("");
+    setPasswordInput("");
+    setIsSubmitted(false);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const user = {
-      email: emailInput,
-      password: passwordInput,
-    };
-    userType === "client" ? signInClient(user) : signInArtist(user);
-    userType === "client" ? navigate("/client-home") : navigate("/artist-home");
+    setIsSubmitted(true);
+    if (isEmailInputValid && isPasswordInputValid && userTypeInput) {
+      reset();
+      const user = {
+        email: emailInput,
+        password: passwordInput,
+      };
+      if (userTypeInput === "client") {
+        setUserType("client");
+        signInClient(user);
+        navigate("/client-home");
+      } else if (userTypeInput === "artist") {
+        setUserType("artist");
+        signInArtist(user);
+        navigate("/artist-home");
+      }
+    }
   };
 
   return (
@@ -108,7 +120,7 @@ export const Login = () => {
                 <LockOutlinedIcon />
               </Avatar>
               <Typography component="h1" variant="h5">
-                Sign in
+                Sign in (For Existing Users)
               </Typography>
               <Box
                 component="form"
@@ -125,8 +137,8 @@ export const Login = () => {
                       autoFocus
                       aria-labelledby="demo-controlled-radio-buttons-group"
                       name="controlled-radio-buttons-group"
-                      value={userType}
-                      onChange={(e) => setUserType(e.target.value)}
+                      value={userTypeInput}
+                      onChange={(e) => setUserTypeInput(e.target.value)}
                       defaultValue="client"
                     >
                       <FormControlLabel
@@ -140,33 +152,38 @@ export const Login = () => {
                         label="Artist"
                       />
                     </RadioGroup>
+                    {!userTypeInput && isSubmitted && (
+                      <Typography sx={errorStyle} variant="h6" component="h6">
+                        {userTypeErrorMessage}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Grid>
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  autoFocus
-                  onChange={(e) => {
-                    setEmailInput(e.target.value);
+                <FunctionalTextField
+                  label="Email"
+                  inputProps={{
+                    placeholder: "ab@bing.net",
+                    value: emailInput,
+                    type: "text",
+                    onChange: (e) => {
+                      setEmailInput(e.target.value);
+                    },
                   }}
+                  errorMessage={emailErrorMessage}
+                  shouldDisplayError={!isEmailInputValid && isSubmitted}
                 />
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  name="password"
+                <FunctionalTextField
                   label="Password"
-                  type="password"
-                  id="password"
-                  autoComplete="current-password"
-                  onChange={(e) => {
-                    setPasswordInput(e.target.value);
+                  inputProps={{
+                    placeholder: "Password1!",
+                    value: passwordInput,
+                    type: "password",
+                    onChange: (e) => {
+                      setPasswordInput(e.target.value);
+                    },
                   }}
+                  errorMessage={passwordErrorMessage}
+                  shouldDisplayError={!isPasswordInputValid && isSubmitted}
                 />
                 <Button
                   type="submit"

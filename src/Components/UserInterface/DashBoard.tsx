@@ -102,7 +102,7 @@ export const DashBoard = () => {
           aria-describedby="modal-modal-description"
         >
           <div>
-            <ClientProfile />
+            <ClientProfile onClose={handleProfileClose}/>
           </div>
         </Modal>
         <Modal
@@ -122,7 +122,7 @@ export const DashBoard = () => {
           aria-describedby="modal-modal-description"
         >
           <div className="user-help">
-            <UserHelpInstructions />
+            <UserHelpInstructions onClose={handleHelpClose}/>
           </div>
         </Modal>
       </div>

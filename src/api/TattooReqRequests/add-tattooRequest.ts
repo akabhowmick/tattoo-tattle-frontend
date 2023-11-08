@@ -1,7 +1,7 @@
-import { Request } from "../../types/interface";
+import { TattooRequest } from "../../types/interface";
 import { API_CONFIG } from "../config";
 
-export const addRequestToDB = (
+export const addTattooRequestToDB = (
   {
     clientName,
     artistName,
@@ -10,7 +10,7 @@ export const addRequestToDB = (
     tattooOfInterestTitle,
     artistId,
     clientId,
-  }: Request,
+  }: TattooRequest,
   authorizationString: string
 ) => {
   const body = JSON.stringify({
@@ -22,8 +22,7 @@ export const addRequestToDB = (
     artistId,
     clientId,
   });
-  console.log(authorizationString);
-  return fetch(API_CONFIG.baseURL + "/requests/", {
+  return fetch(API_CONFIG.baseURL + "/tattooRequests/", {
     method: "POST",
     headers: {
       Authorization: authorizationString,

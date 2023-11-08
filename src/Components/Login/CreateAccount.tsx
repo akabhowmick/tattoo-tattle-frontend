@@ -5,7 +5,6 @@ import {
   Avatar,
   Button,
   CssBaseline,
-  TextField,
   Box,
   Grid,
   Typography,
@@ -20,295 +19,131 @@ import {
   MenuItem,
   Select,
   Chip,
-  TypographyProps,
   SelectChangeEvent,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { MuiTelInput } from "mui-tel-input";
-import { createTheme, Theme, ThemeProvider } from "@mui/material/styles";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import signupImage from "../../assets/signup.jpg";
 import { useAuthContext } from "../../providers/auth-provider";
 import { tattooStyles, usStates } from "../../api/config";
 import { Navigate, Link } from "react-router-dom";
-import { ToastMessage } from "../UserInterface/ToastMessage";
 import { errorStyle } from "../UserInterface/Styles";
 import { Artist, Client } from "../../types/interface";
+import {
+  isEmailValid,
+  isValidName,
+  isValidPassword,
+  isValidPhoneNumber,
+  isValidStatesInput,
+  isValidTattooStyleInput,
+} from "../CreateAndEditForms/utils/validations";
+import { FunctionalTextField } from "../CreateAndEditForms/utils/FormTextField";
+import {
+  emailErrorMessage,
+  firstNameErrorMessage,
+  lastNameErrorMessage,
+  passwordErrorMessage,
+  phoneNumberErrorMessage,
+  tattooStatesErrorMessage,
+  tattooStylesErrorMessage,
+  userTypeErrorMessage,
+} from "../CreateAndEditForms/utils/ErrorMessage";
+import { Copyright } from "./Copyrights";
+import { MenuProps, getStyles } from "./selectStyles";
 
-function Copyright(props: TypographyProps) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link to="/" replace={true}>
-        Tattoo Tattle
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-function getStyles(name: string, selectField: string[], theme: Theme) {
-  return {
-    fontWeight:
-      selectField.indexOf(name) === -1
-        ? theme.typography.fontWeightRegular
-        : theme.typography.fontWeightMedium,
-  };
-}
-
+const emptyStringArr: string[] = [];
 const theme = createTheme();
 
 export const CreateAccount = () => {
   const { addClient, addArtist, userType, setUserType, loggedIn } =
     useAuthContext();
+  const [firstNameInput, setFirstNameInput] = useState("");
+  const [lastNameInput, setLastNameInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [userTypeInput, setUserTypeInput] = useState("");
+  const [phoneNumberInput, setPhoneNumberInput] = useState("");
+  const [tattooStyleInput, setTattooStyleInput] = useState(emptyStringArr);
+  const [statesInput, setStatesInput] = useState(emptyStringArr);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const emptyStringarr: string[] = [];
+  const isFirstNameInputValid = isValidName(firstNameInput);
+  const isLastNameInputValid = isValidName(lastNameInput);
+  const isEmailInputValid = isEmailValid(emailInput);
+  const isPasswordInputValid = isValidPassword(passwordInput);
+  const isPhoneNumberInputValid = isValidPhoneNumber(phoneNumberInput);
+  const isTattooStyleInputValid = isValidTattooStyleInput(tattooStyleInput);
+  const isStatesInputValid = isValidStatesInput(statesInput);
 
-  const [formValues, setFormValues] = useState({
-    firstNameInput: {
-      data: "",
-      valid: false,
-      errorMessage: "",
-    },
-    lastNameInput: {
-      data: "",
-      valid: false,
-      errorMessage: "",
-    },
-    emailInput: {
-      data: "",
-      valid: false,
-      errorMessage: "",
-    },
-    phoneInput: {
-      data: "",
-      valid: false,
-      errorMessage: "",
-    },
-    passwordInput: {
-      data: "",
-      valid: false,
-      errorMessage: "",
-    },
-    tattooStyleInput: {
-      data: emptyStringarr,
-      valid: false,
-      errorMessage: "",
-    },
-    statesInput: {
-      data: emptyStringarr,
-      valid: false,
-      errorMessage: "",
-    },
-  });
-
-  const [toastMessage, setToastMessage] = React.useState({
-    message: "",
-    messageType: "",
-  });
-
-  const nameValidation = (fieldName: string, value: string) => {
-    if (value.length > 1) {
-      setFormValues({
-        ...formValues,
-        [fieldName]: {
-          data: value,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        [fieldName]: {
-          data: value,
-          valid: false,
-          errorMessage: "Invalid name",
-        },
-      });
-    }
-  };
-
-  const phoneValidation = (newPhone: string) => {
-    // assumes american number, includes +1 and spaces in the format +1 xxx xxx xxxx
-    if (newPhone.length === 15) {
-      setFormValues({
-        ...formValues,
-        phoneInput: {
-          data: newPhone,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        phoneInput: {
-          data: newPhone,
-          valid: false,
-          errorMessage: "Invalid phone number",
-        },
-      });
-    }
-  };
-
-  const emailValidation = (email: string) => {
-    const emailRegex =
-      /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-    emailRegex.test(email)
-      ? setFormValues({
-          ...formValues,
-          emailInput: {
-            data: email,
-            valid: true,
-            errorMessage: "",
-          },
-        })
-      : setFormValues({
-          ...formValues,
-          emailInput: {
-            data: email,
-            valid: false,
-            errorMessage: "Invalid email input",
-          },
-        });
-  };
-
-  const passwordValidation = (password: string) => {
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[-#$^+_!*()@%&]).{8,20}$/gm;
-    passwordRegex.test(password)
-      ? setFormValues({
-          ...formValues,
-          passwordInput: {
-            data: password,
-            valid: true,
-            errorMessage: "",
-          },
-        })
-      : setFormValues({
-          ...formValues,
-          passwordInput: {
-            data: password,
-            valid: false,
-            errorMessage:
-              "Invalid password input, must have (8-20 char, 1 lowercase,1 uppercase, 1 number, 1 special char)",
-          },
-        });
+  const reset = () => {
+    setFirstNameInput("");
+    setLastNameInput("");
+    setEmailInput("");
+    setPasswordInput("");
+    setUserTypeInput("");
+    setPhoneNumberInput("");
+    setTattooStyleInput(emptyStringArr);
+    setStatesInput(emptyStringArr);
+    setIsSubmitted(false);
   };
 
   const handleTattooStyleChange = (event: SelectChangeEvent<string>) => {
-    if (event.target.value.length === 0) {
-      setFormValues({
-        ...formValues,
-        tattooStyleInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: false,
-          errorMessage: "Enter a tattoo style",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        tattooStyleInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    }
+    setTattooStyleInput(
+      typeof event.target.value === "string"
+        ? event.target.value.split(",")
+        : event.target.value
+    );
   };
 
   const handleUsStatesChange = (event: SelectChangeEvent<string>) => {
-    if (event.target.value.length === 0) {
-      setFormValues({
-        ...formValues,
-        statesInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: false,
-          errorMessage: "Enter studio locations",
-        },
-      });
-    } else {
-      setFormValues({
-        ...formValues,
-        statesInput: {
-          data:
-            typeof event.target.value === "string"
-              ? event.target.value.split(",")
-              : event.target.value,
-          valid: true,
-          errorMessage: "",
-        },
-      });
-    }
+    setStatesInput(
+      typeof event.target.value === "string"
+        ? event.target.value.split(",")
+        : event.target.value
+    );
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsSubmitted(true);
     if (
-      formValues.firstNameInput.valid &&
-      formValues.lastNameInput.valid &&
-      formValues.emailInput.valid &&
-      formValues.passwordInput.valid &&
-      formValues.phoneInput.valid
+      isEmailInputValid &&
+      isPasswordInputValid &&
+      isFirstNameInputValid &&
+      isLastNameInputValid &&
+      userTypeInput &&
+      isPhoneNumberInputValid
     ) {
-      if (userType === "client") {
+      if (userTypeInput === "client") {
         const newClient: Client = {
-          firstName: formValues.firstNameInput.data,
-          lastName: formValues.lastNameInput.data,
-          email: formValues.emailInput.data,
-          password: formValues.passwordInput.data,
-          phoneNumber: formValues.phoneInput.data,
+          firstName: firstNameInput,
+          lastName: lastNameInput,
+          email: emailInput,
+          password: passwordInput,
+          phoneNumber: phoneNumberInput,
           type: "Client",
         };
         addClient(newClient);
       } else if (
-        userType === "artist" &&
-        formValues.statesInput.valid &&
-        formValues.tattooStyleInput.valid
+        userTypeInput === "artist" &&
+        isTattooStyleInputValid &&
+        isStatesInputValid
       ) {
         const newArtist: Artist = {
-          firstName: formValues.firstNameInput.data,
-          lastName: formValues.lastNameInput.data,
-          email: formValues.emailInput.data,
-          password: formValues.passwordInput.data,
-          phoneNumber: formValues.phoneInput.data,
+          firstName: firstNameInput,
+          lastName: lastNameInput,
+          email: emailInput,
+          password: passwordInput,
+          phoneNumber: phoneNumberInput,
           type: "Artist",
-          statesLocation: formValues.statesInput.data.toString(),
-          tattooStyles: formValues.tattooStyleInput.data.toString(),
+          statesLocation: statesInput.toString(),
+          tattooStyles: tattooStyleInput.toString(),
         };
         addArtist(newArtist);
-      } else {
-        setToastMessage({ message: "Sign up", messageType: "error" });
       }
-    } else {
-      setToastMessage({ message: "Sign up", messageType: "error" });
+      setUserType(userTypeInput);
+      reset();
     }
   };
 
@@ -320,7 +155,6 @@ export const CreateAccount = () => {
       {loggedIn && userType === "artist" && (
         <Navigate to="/artist-home" replace={true} />
       )}
-      {toastMessage.message !== "" && <ToastMessage info={toastMessage} />}
       <ThemeProvider theme={theme}>
         <Grid container component="main" sx={{ height: "100vh" }}>
           <CssBaseline />
@@ -379,8 +213,8 @@ export const CreateAccount = () => {
                       autoFocus
                       aria-labelledby="demo-controlled-radio-buttons-group"
                       name="controlled-radio-buttons-group"
-                      value={userType}
-                      onChange={(event) => setUserType(event.target.value)}
+                      value={userTypeInput}
+                      onChange={(event) => setUserTypeInput(event.target.value)}
                       defaultValue="client"
                     >
                       <FormControlLabel
@@ -394,109 +228,103 @@ export const CreateAccount = () => {
                         label="Artist"
                       />
                     </RadioGroup>
+                    {!userTypeInput && isSubmitted && (
+                      <Typography sx={errorStyle} variant="h6" component="h6">
+                        {userTypeErrorMessage}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Grid>
                 <Grid container spacing={2}>
                   <div className="field-error-div">
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        autoComplete="given-name"
-                        name="firstName"
-                        required
-                        fullWidth
-                        id="firstName"
+                    <Grid item xs={12}>
+                      <FunctionalTextField
                         label="First Name"
-                        onChange={(e) => {
-                          nameValidation("firstNameInput", e.target.value);
+                        inputProps={{
+                          placeholder: "First Name*",
+                          value: firstNameInput,
+                          type: "text",
+                          onChange: (e) => {
+                            setFirstNameInput(e.target.value);
+                          },
                         }}
-                        sx={{ width: 150 }}
+                        errorMessage={firstNameErrorMessage}
+                        shouldDisplayError={
+                          !isFirstNameInputValid && isSubmitted
+                        }
                       />
                     </Grid>
-                    {!formValues.firstNameInput.valid && (
-                      <Typography sx={errorStyle} variant="h6" component="h6">
-                        {formValues.firstNameInput.errorMessage}
-                      </Typography>
-                    )}
                   </div>
 
                   <div className="field-error-div">
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        required
-                        fullWidth
-                        id="lastName"
+                    <Grid item xs={12}>
+                      <FunctionalTextField
                         label="Last Name"
-                        name="lastName"
-                        autoComplete="family-name"
-                        onChange={(e) => {
-                          nameValidation("lastNameInput", e.target.value);
+                        inputProps={{
+                          placeholder: "Last Name*",
+                          value: lastNameInput,
+                          type: "text",
+                          onChange: (e) => {
+                            setLastNameInput(e.target.value);
+                          },
                         }}
-                        sx={{ width: 150 }}
+                        errorMessage={lastNameErrorMessage}
+                        shouldDisplayError={
+                          !isLastNameInputValid && isSubmitted
+                        }
                       />
                     </Grid>
-                    {!formValues.lastNameInput.valid && (
-                      <Typography sx={errorStyle} variant="h6" component="h6">
-                        {formValues.lastNameInput.errorMessage}
-                      </Typography>
-                    )}
                   </div>
 
                   <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      id="email"
-                      label="Email Address"
-                      name="email"
-                      autoComplete="email"
-                      onChange={(e) => {
-                        emailValidation(e.target.value);
+                    <FunctionalTextField
+                      label="Email"
+                      inputProps={{
+                        placeholder: "ab@bing.net",
+                        value: emailInput,
+                        type: "text",
+                        onChange: (e) => {
+                          setEmailInput(e.target.value);
+                        },
                       }}
+                      errorMessage={emailErrorMessage}
+                      shouldDisplayError={!isEmailInputValid && isSubmitted}
                     />
                   </Grid>
-                  {!formValues.emailInput.valid && (
-                    <Typography sx={errorStyle} variant="h6" component="h6">
-                      {formValues.emailInput.errorMessage}
-                    </Typography>
-                  )}
 
                   <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      name="password"
+                    <FunctionalTextField
                       label="Password"
-                      type="password"
-                      id="password"
-                      autoComplete="new-password"
-                      onChange={(e) => {
-                        passwordValidation(e.target.value);
+                      inputProps={{
+                        placeholder: "Password1!",
+                        value: passwordInput,
+                        type: "password",
+                        onChange: (e) => {
+                          setPasswordInput(e.target.value);
+                        },
                       }}
+                      errorMessage={passwordErrorMessage}
+                      shouldDisplayError={!isPasswordInputValid && isSubmitted}
                     />
                   </Grid>
-                  {!formValues.passwordInput.valid && (
-                    <Typography sx={errorStyle} variant="h6" component="h6">
-                      {formValues.passwordInput.errorMessage}
-                    </Typography>
-                  )}
 
                   <Grid item xs={12}>
                     <MuiTelInput
                       fullWidth
-                      value={formValues.phoneInput.data}
-                      onChange={phoneValidation}
+                      value={phoneNumberInput}
+                      onChange={setPhoneNumberInput}
                       forceCallingCode
                       preferredCountries={["US"]}
                       defaultCountry={"US"}
                     />
+                    {isSubmitted && !isPhoneNumberInputValid && (
+                      <Typography sx={errorStyle} variant="h6" component="h6">
+                        {phoneNumberErrorMessage}
+                      </Typography>
+                    )}
                   </Grid>
-                  {!formValues.phoneInput.valid && (
-                    <Typography sx={errorStyle} variant="h6" component="h6">
-                      {formValues.phoneInput.errorMessage}
-                    </Typography>
-                  )}
 
-                  {userType === "artist" && (
+                  {userTypeInput === "artist" && (
                     <div className="artist-add-ons">
                       <Grid container spacing={2}>
                         <div className="field-error-div">
@@ -511,7 +339,7 @@ export const CreateAccount = () => {
                                 id="demo-multiple-chip"
                                 multiple={true}
                                 // @ts-ignore
-                                value={formValues.statesInput.data}
+                                value={statesInput}
                                 onChange={handleUsStatesChange}
                                 input={
                                   <OutlinedInput
@@ -527,11 +355,9 @@ export const CreateAccount = () => {
                                       gap: 0.5,
                                     }}
                                   >
-                                    {formValues.statesInput.data.map(
-                                      (value) => (
-                                        <Chip key={value} label={value} />
-                                      )
-                                    )}
+                                    {statesInput.map((value) => (
+                                      <Chip key={value} label={value} />
+                                    ))}
                                   </Box>
                                 )}
                                 MenuProps={MenuProps}
@@ -540,11 +366,7 @@ export const CreateAccount = () => {
                                   <MenuItem
                                     key={name}
                                     value={name}
-                                    style={getStyles(
-                                      name,
-                                      formValues.statesInput.data,
-                                      theme
-                                    )}
+                                    style={getStyles(name, statesInput, theme)}
                                   >
                                     {name}
                                   </MenuItem>
@@ -553,13 +375,13 @@ export const CreateAccount = () => {
                             </FormControl>
                           </Grid>
 
-                          {!formValues.statesInput.valid && (
+                          {isSubmitted && !isStatesInputValid && (
                             <Typography
                               sx={errorStyle}
                               variant="h6"
                               component="h6"
                             >
-                              {formValues.statesInput.errorMessage}
+                              {tattooStatesErrorMessage}
                             </Typography>
                           )}
                         </div>
@@ -572,7 +394,7 @@ export const CreateAccount = () => {
                                 labelId="demo-multiple-chip-label"
                                 multiple={true}
                                 // @ts-ignore
-                                value={formValues.tattooStyleInput.data}
+                                value={tattooStyleInput}
                                 onChange={handleTattooStyleChange}
                                 input={
                                   <OutlinedInput label="Tattoo Style(s)" />
@@ -585,11 +407,9 @@ export const CreateAccount = () => {
                                       gap: 0.5,
                                     }}
                                   >
-                                    {formValues.tattooStyleInput.data.map(
-                                      (value) => (
-                                        <Chip key={value} label={value} />
-                                      )
-                                    )}
+                                    {tattooStyleInput.map((value) => (
+                                      <Chip key={value} label={value} />
+                                    ))}
                                   </Box>
                                 )}
                                 MenuProps={MenuProps}
@@ -600,7 +420,7 @@ export const CreateAccount = () => {
                                     value={name}
                                     style={getStyles(
                                       name,
-                                      formValues.tattooStyleInput.data,
+                                      tattooStyleInput,
                                       theme
                                     )}
                                   >
@@ -611,13 +431,13 @@ export const CreateAccount = () => {
                             </FormControl>
                           </Grid>
 
-                          {!formValues.tattooStyleInput.valid && (
+                          {isSubmitted && !isTattooStyleInputValid && (
                             <Typography
                               sx={errorStyle}
                               variant="h6"
                               component="h6"
                             >
-                              {formValues.tattooStyleInput.errorMessage}
+                              {tattooStylesErrorMessage}
                             </Typography>
                           )}
                         </div>

@@ -8,7 +8,9 @@ import {
   TableHead,
   TableRow,
   Paper,
+  IconButton
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 function createData(name: string, description: string) {
   return { name, description };
@@ -49,12 +51,17 @@ const style = {
   overflowX: "auto",
 };
 
-export const UserHelpInstructions = () => {
+export const UserHelpInstructions = ({ onClose }: { onClose: () => void }) => {
   return (
     <Box sx={style} component="form" noValidate>
-      <Typography id="modal-modal-title" variant="h6" component="h2">
-        Welcome to Tattoo Tattle:
-      </Typography>
+      <div id="modal-header">
+        <Typography id="modal-modal-title" variant="h6" component="h2">
+          Welcome to Tattoo Tattle:
+        </Typography>
+        <IconButton onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </div>
       <Typography
         sx={{ margin: "12px 0", textDecoration: "underline" }}
         variant="h6"

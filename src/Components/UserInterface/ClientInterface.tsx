@@ -10,7 +10,6 @@ import {
   Select,
   OutlinedInput,
   FormControl,
-  Theme,
   SelectChangeEvent,
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -18,26 +17,7 @@ import { createTheme } from "@mui/material/styles";
 import { tattooStyles, usStates } from "../../api/config";
 import { Pagination } from "./Pagination";
 import { Client } from "../../types/interface";
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-function getStyles(name: string, selectField: string[], theme: Theme) {
-  return {
-    fontWeight:
-      selectField.indexOf(name) === -1
-        ? theme.typography.fontWeightRegular
-        : theme.typography.fontWeightMedium,
-  };
-}
+import { getStyles, MenuProps } from "../Login/selectStyles";
 
 const theme = createTheme();
 
@@ -75,11 +55,11 @@ export const ClientInterface = () => {
   };
 
   const handleDeleteStatesClick = (value: string) => {
-    deleteFromFilters("states", value); 
+    deleteFromFilters("states", value);
   };
 
   const handleDeleteStylesClick = (value: string) => {
-    deleteFromFilters("styles", value); 
+    deleteFromFilters("styles", value);
   };
 
   return (
@@ -98,7 +78,7 @@ export const ClientInterface = () => {
               className={`selector ${activeSelector === "favs" && "active"}`}
               onClick={() => filterClick("favs", user.id!)}
             >
-              Favorited
+              View Favorites
             </div>
             <div
               className={`selector ${activeSelector === "reqs" && "active"}`}
@@ -202,15 +182,15 @@ export const ClientInterface = () => {
                     >
                       {filters.styles.map((value: string) => (
                         <Chip
-                        key={value}
-                        label={value}
-                        onDelete={() => handleDeleteStylesClick(value)}
-                        deleteIcon={
-                          <CancelIcon
-                            onMouseDown={(event) => event.stopPropagation()}
-                          />
-                        }
-                      />
+                          key={value}
+                          label={value}
+                          onDelete={() => handleDeleteStylesClick(value)}
+                          deleteIcon={
+                            <CancelIcon
+                              onMouseDown={(event) => event.stopPropagation()}
+                            />
+                          }
+                        />
                       ))}
                     </Box>
                   )}
